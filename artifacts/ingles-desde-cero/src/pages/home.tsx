@@ -7,6 +7,7 @@ import {
   Headphones,
   Lightbulb,
   MessageCircle,
+  Mic,
   Play,
   RotateCcw,
   Search,
@@ -20,6 +21,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppHeader } from '@/components/app-header';
 import { IconByName } from '@/components/icon-by-name';
 import { LearningRail } from '@/components/learning-rail';
+import {
+  PronunciationPractice,
+  loadPronunciationProgress,
+  type PracticeItem,
+} from '@/components/pronunciation-practice';
 import { SectionHeading } from '@/components/section-heading';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -39,6 +45,22 @@ import { cn } from '@/lib/utils';
 
 type LetterFilter = 'all' | 'vowels' | 'consonants';
 
+const alphabetPracticeItems: PracticeItem[] = alphabet.map(([letter, word, hint]) => ({
+  id: letter,
+  display: letter,
+  speakText: letter,
+  hint: hint,
+  subtitle: word,
+}));
+
+const numbersPracticeItems: PracticeItem[] = numbers.map(([number, english, spanish]) => ({
+  id: String(number),
+  display: String(number),
+  speakText: String(english),
+  hint: spanish,
+  subtitle: String(english),
+}));
+
 export default function Home() {
   const [progress, setProgress] = useState<UserProgress>(loadProgress);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,6 +72,38 @@ export default function Home() {
   const [quizResult, setQuizResult] = useState<'correct' | 'incorrect' | null>(null);
   const [quizScore, setQuizScore] = useState(0);
   const [quizStarted, setQuizStarted] = useState(false);
+
+  // Pronunciation practice tracking
+  const [alphabetPronounced, setAlphabetPronounced] = useState<Set<string>>(() =>
+    loadPronunciationProgress('abecedario'),
+  );
+  const [numbersPronounced, setNumbersPronounced] = useState<Set<string>>(() =>
+    loadPronunciationProgress('numeros'),
+  );
+  const [practiceModal, setPracticeModal] = useState<{
+    isOpen: boolean;
+    type: 'alphabet' | 'numbers';
+    initialIndex: number;
+  }>({
+    isOpen: false,
+    type: 'alphabet',
+    initialIndex: 0,
+  });
+
+  const openPractice = useCallback((type: 'alphabet' | 'numbers', initialIndex = 0) => {
+    setPracticeModal({
+      isOpen: true,
+      type,
+      initialIndex,
+    });
+  }, []);
+
+  const closePractice = useCallback(() => {
+    setPracticeModal((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  const alphabetAllPronounced = alphabetPronounced.size >= alphabet.length;
+  const numbersAllPronounced = numbersPronounced.size >= numbers.length;
 
   const sectionIds = useMemo(() => navItems.map(([, id]) => id), []);
   const activeSection = useScrollSpy(sectionIds);
@@ -252,13 +306,54 @@ export default function Home() {
             data-testid="section-abecedario"
           >
             <SectionHeading
-              eyebrow="Lección 01 · Sonidos"
+              eyebrow="Lección 01 · Sonidos y Pronunciación"
               title="El abecedario"
-              description="26 letras para abrir la puerta del inglés. Pulsa el altavoz, escucha y repite en voz alta."
+              description="26 letras para abrir la puerta del inglés. Da clic en cada letra para escuchar su pronunciación, repítela con el micrófono y completa todas las letras para avanzar."
               icon={<BookOpen size={22} />}
               complete={completedSubjects.has('abecedario')}
-              onComplete={() => markComplete('abecedario')}
+              locked={!alphabetAllPronounced}
+              lockReason="Pronuncia las 26 letras con tu voz para avanzar"
+              progressCount={{
+                done: alphabetPronounced.size,
+                total: alphabet.length,
+                label: 'letras',
+              }}
+              onOpenPractice={() => openPractice('alphabet')}
+              practiceButtonText="Reto de voz: Abecedario"
+              onComplete={() => {
+                if (alphabetAllPronounced) {
+                  markComplete('abecedario');
+                } else {
+                  openPractice('alphabet');
+                }
+              }}
             />
+
+            {/* Instruction Banner */}
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-indigo-100 bg-white/80 p-4 shadow-sm backdrop-blur sm:p-5">
+              <div className="flex items-start gap-3.5">
+                <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <Mic size={20} />
+                </span>
+                <div>
+                  <h4 className="display text-sm font-extrabold text-slate-800">
+                    Aprende y habla: pronunciación guiada
+                  </h4>
+                  <p className="mt-0.5 text-xs leading-5 text-slate-500 sm:text-sm">
+                    Toca cualquier letra para escuchar cómo se dice en inglés. Luego pulsa el micrófono para pronunciarla. ¡Debes pronunciar las 26 letras para desbloquear la siguiente lección!
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => openPractice('alphabet')}
+                className="btn-primary inline-flex items-center gap-2 px-4 py-2.5 text-xs"
+                data-testid="button-start-alphabet-practice"
+              >
+                <Mic size={14} /> Iniciar práctica interactiva
+              </button>
+            </div>
+
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar letras">
                 {(
@@ -296,31 +391,88 @@ export default function Home() {
                 />
               </label>
             </div>
+
             <div className="lesson-grid mt-8 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-              {filteredAlphabet.map(([letter, word, hint], index) => (
-                <motion.button
-                  type="button"
-                  onClick={() => speak(`${letter}. ${word}`)}
-                  key={letter}
-                  initial={{ opacity: 0, y: 8 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-40px' }}
-                  transition={{ delay: Math.min(index * 0.02, 0.3) }}
-                  className={cn(
-                    'group soft-card flex min-h-[140px] flex-col items-center justify-center p-4 text-center transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-100',
-                    VOWELS.has(letter) && 'ring-1 ring-violet-100',
-                  )}
-                  data-testid={`card-letter-${letter}`}
-                  aria-label={`Escuchar letra ${letter}`}
-                >
-                  <span className="display text-4xl font-extrabold text-indigo-600">{letter}</span>
-                  <span className="mt-1 text-sm font-bold text-slate-700">{word}</span>
-                  <span className="mt-1 text-xs text-slate-400">/ {hint} /</span>
-                  <span className="mt-2 grid h-7 w-7 place-items-center rounded-full bg-indigo-50 text-indigo-500 transition group-hover:bg-indigo-600 group-hover:text-white">
-                    <Volume2 size={14} />
-                  </span>
-                </motion.button>
-              ))}
+              {filteredAlphabet.map(([letter, word, hint], index) => {
+                const isPronounced = alphabetPronounced.has(letter);
+                const originalIndex = alphabet.findIndex(([l]) => l === letter);
+
+                return (
+                  <motion.div
+                    key={letter}
+                    initial={{ opacity: 0, y: 8 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-40px' }}
+                    transition={{ delay: Math.min(index * 0.02, 0.3) }}
+                    className={cn(
+                      'group soft-card relative flex min-h-[155px] flex-col items-center justify-between p-3.5 text-center transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-100',
+                      VOWELS.has(letter) && 'ring-1 ring-violet-100',
+                      isPronounced && 'border-emerald-200 bg-emerald-50/20',
+                    )}
+                    data-testid={`card-letter-${letter}`}
+                  >
+                    {isPronounced && (
+                      <span
+                        className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-emerald-100 text-emerald-700 shadow-xs"
+                        title="Pronunciada correctamente con voz"
+                      >
+                        <CheckCircle2 size={12} />
+                      </span>
+                    )}
+
+                    <div
+                      onClick={() => speak(`${letter}. ${word}`)}
+                      className="flex w-full cursor-pointer flex-col items-center pt-2"
+                      title="Haz clic para escuchar la pronunciación"
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          speak(`${letter}. ${word}`);
+                        }
+                      }}
+                    >
+                      <span className="display text-4xl font-extrabold text-indigo-600">
+                        {letter}
+                      </span>
+                      <span className="mt-1 text-sm font-bold text-slate-700">{word}</span>
+                      <span className="mt-0.5 text-xs text-slate-400">/ {hint} /</span>
+                    </div>
+
+                    <div className="mt-3 flex w-full items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => speak(`${letter}. ${word}`)}
+                        className="grid h-7 w-7 place-items-center rounded-full bg-indigo-50 text-indigo-600 transition hover:bg-indigo-600 hover:text-white"
+                        title="Escuchar cómo se pronuncia"
+                        aria-label={`Escuchar letra ${letter}`}
+                      >
+                        <Volume2 size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openPractice('alphabet', originalIndex >= 0 ? originalIndex : 0)
+                        }
+                        className={cn(
+                          'grid h-7 w-7 place-items-center rounded-full transition',
+                          isPronounced
+                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-600 hover:text-white'
+                            : 'bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white',
+                        )}
+                        title={
+                          isPronounced
+                            ? '✓ Pronunciado. Clic para practicar de nuevo'
+                            : 'Pronunciar esta letra con micrófono'
+                        }
+                        aria-label={`Pronunciar letra ${letter} con micrófono`}
+                      >
+                        <Mic size={13} />
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
             {filteredAlphabet.length === 0 && (
               <p className="mt-6 text-center text-sm text-slate-500">
@@ -332,13 +484,54 @@ export default function Home() {
           <section id="numeros" className="scroll-mt-24 py-14 lg:py-20" data-testid="section-numeros">
             <div className="rounded-[2rem] border border-white/70 bg-white/60 p-6 backdrop-blur lg:p-10">
               <SectionHeading
-                eyebrow="Lección 02 · Cantidades"
+                eyebrow="Lección 02 · Cantidades y Pronunciación"
                 title="Los números"
-                description="Cuenta del 1 al 20 y descubre cómo formar las decenas. Cada número tiene su propio ritmo."
+                description="Cuenta del 1 al 20 y descubre cómo formar las decenas. Escucha la pronunciación de cada número y practícalo con tu voz hasta completar todos para avanzar."
                 icon={<Zap size={22} />}
                 complete={completedSubjects.has('numeros')}
-                onComplete={() => markComplete('numeros')}
+                locked={!numbersAllPronounced}
+                lockReason="Pronuncia los 28 números con tu voz para avanzar"
+                progressCount={{
+                  done: numbersPronounced.size,
+                  total: numbers.length,
+                  label: 'números',
+                }}
+                onOpenPractice={() => openPractice('numbers')}
+                practiceButtonText="Reto de voz: Números"
+                onComplete={() => {
+                  if (numbersAllPronounced) {
+                    markComplete('numeros');
+                  } else {
+                    openPractice('numbers');
+                  }
+                }}
               />
+
+              {/* Instruction Banner */}
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-indigo-100 bg-white/80 p-4 shadow-sm backdrop-blur sm:p-5">
+                <div className="flex items-start gap-3.5">
+                  <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                    <Mic size={20} />
+                  </span>
+                  <div>
+                    <h4 className="display text-sm font-extrabold text-slate-800">
+                      Entrena tu oído y pronunciación numérica
+                    </h4>
+                    <p className="mt-0.5 text-xs leading-5 text-slate-500 sm:text-sm">
+                      Haz clic en cualquier número para escuchar cómo suena. Pulsa el botón de micrófono para decirlo en voz alta hasta pronunciar los 28 números.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openPractice('numbers')}
+                  className="btn-primary inline-flex items-center gap-2 px-4 py-2.5 text-xs"
+                  data-testid="button-start-numbers-practice"
+                >
+                  <Mic size={14} /> Iniciar práctica interactiva
+                </button>
+              </div>
+
               <div className="mt-8 space-y-10">
                 {numberGroups.map(({ title, range }) => {
                   const items = numbers.filter(
@@ -350,28 +543,71 @@ export default function Home() {
                         {title}
                       </h3>
                       <div className="grid gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-                        {items.map(([number, english, spanish]) => (
-                          <button
-                            type="button"
-                            key={number}
-                            onClick={() => speak(String(english))}
-                            className="group rounded-2xl border border-indigo-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-md"
-                            data-testid={`card-number-${number}`}
-                            aria-label={`Escuchar número ${number}`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="display text-2xl font-extrabold text-slate-800">
-                                {number}
-                              </span>
-                              <Volume2
-                                size={15}
-                                className="text-indigo-400 group-hover:text-indigo-600"
-                              />
+                        {items.map(([number, english, spanish]) => {
+                          const isPronounced = numbersPronounced.has(String(number));
+                          const originalIndex = numbers.findIndex(([n]) => n === number);
+
+                          return (
+                            <div
+                              key={number}
+                              className={cn(
+                                'group relative flex flex-col justify-between rounded-2xl border bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-md',
+                                isPronounced ? 'border-emerald-200 bg-emerald-50/20' : 'border-indigo-100',
+                              )}
+                              data-testid={`card-number-${number}`}
+                            >
+                              <div>
+                                <div className="flex items-center justify-between">
+                                  <span className="display text-2xl font-extrabold text-slate-800">
+                                    {number}
+                                  </span>
+                                  {isPronounced && (
+                                    <span
+                                      className="grid h-5 w-5 place-items-center rounded-full bg-emerald-100 text-emerald-700 shadow-xs"
+                                      title="Pronunciado correctamente con voz"
+                                    >
+                                      <CheckCircle2 size={12} />
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="mt-2 text-sm font-bold text-indigo-600">{english}</p>
+                                <p className="text-xs text-slate-500">{spanish}</p>
+                              </div>
+
+                              <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-slate-50 pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => speak(String(english))}
+                                  className="grid h-7 w-7 place-items-center rounded-full bg-indigo-50 text-indigo-600 transition hover:bg-indigo-600 hover:text-white"
+                                  title="Escuchar número"
+                                  aria-label={`Escuchar número ${number}`}
+                                >
+                                  <Volume2 size={13} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openPractice('numbers', originalIndex >= 0 ? originalIndex : 0)
+                                  }
+                                  className={cn(
+                                    'grid h-7 w-7 place-items-center rounded-full transition',
+                                    isPronounced
+                                      ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-600 hover:text-white'
+                                      : 'bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white',
+                                  )}
+                                  title={
+                                    isPronounced
+                                      ? '✓ Pronunciado. Clic para practicar de nuevo'
+                                      : 'Pronunciar este número con micrófono'
+                                  }
+                                  aria-label={`Pronunciar número ${number} con micrófono`}
+                                >
+                                  <Mic size={13} />
+                                </button>
+                              </div>
                             </div>
-                            <p className="mt-2 text-sm font-bold text-indigo-600">{english}</p>
-                            <p className="text-xs text-slate-500">{spanish}</p>
-                          </button>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -728,6 +964,39 @@ export default function Home() {
           </footer>
         </main>
       </div>
+
+      {/* Pronunciation Practice Modal */}
+      <PronunciationPractice
+        isOpen={practiceModal.isOpen}
+        onClose={closePractice}
+        items={practiceModal.type === 'alphabet' ? alphabetPracticeItems : numbersPracticeItems}
+        title={
+          practiceModal.type === 'alphabet'
+            ? 'Práctica de Voz: El Abecedario'
+            : 'Práctica de Voz: Los Números'
+        }
+        description={
+          practiceModal.type === 'alphabet'
+            ? 'Paso 1: Escucha cómo suena cada letra en inglés. Paso 2: Háblale al micrófono y pronúnciala en voz alta. ¡Debes completar las 26 letras para desbloquear y avanzar!'
+            : 'Paso 1: Escucha cómo suena el número en inglés. Paso 2: Háblale al micrófono y pronúncialo en voz alta. ¡Debes completar los 28 números para desbloquear y avanzar!'
+        }
+        sectionId={practiceModal.type === 'alphabet' ? 'abecedario' : 'numeros'}
+        initialIndex={practiceModal.initialIndex}
+        onProgressChange={(updated) => {
+          if (practiceModal.type === 'alphabet') {
+            setAlphabetPronounced(new Set(updated));
+          } else {
+            setNumbersPronounced(new Set(updated));
+          }
+        }}
+        onAllComplete={() => {
+          if (practiceModal.type === 'alphabet') {
+            markComplete('abecedario');
+          } else {
+            markComplete('numeros');
+          }
+        }}
+      />
     </div>
   );
 }

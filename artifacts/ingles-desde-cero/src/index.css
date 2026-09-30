@@ -240,6 +240,304 @@ button {
   }
 }
 
+/* ─── Pronunciation Practice Modal ──────────────────────── */
+
+.pronunciation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: hsl(231 31% 20% / 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.pronunciation-modal {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: hsl(var(--card));
+  border-radius: 1.75rem;
+  border: 1px solid hsl(var(--border) / 0.8);
+  box-shadow:
+    0 24px 80px hsl(232 42% 20% / 0.25),
+    0 0 0 1px hsl(0 0% 100% / 0.08) inset;
+}
+
+.pronunciation-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, hsl(233 72% 58%), hsl(258 65% 56%));
+  border-radius: 1.75rem 1.75rem 0 0;
+}
+
+.pronunciation-progress-bar {
+  height: 6px;
+  border-radius: 9999px;
+  background: hsl(var(--muted));
+  overflow: hidden;
+}
+
+.pronunciation-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, hsl(233 72% 58%), hsl(152 68% 50%));
+}
+
+.pronunciation-minimap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.pronunciation-minimap-item {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  font-size: 0.65rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pronunciation-minimap-item:hover {
+  border-color: hsl(var(--primary));
+  background: hsl(233 72% 61% / 0.06);
+}
+
+.pronunciation-minimap-done {
+  background: hsl(152 68% 95%);
+  border-color: hsl(152 68% 50% / 0.4);
+  color: hsl(152 68% 36%);
+}
+
+.pronunciation-minimap-active {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(233 72% 61% / 0.2);
+  transform: scale(1.1);
+}
+
+.pronunciation-card {
+  background: hsl(var(--card) / 0.92);
+  border: 1px solid hsl(var(--border) / 0.7);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px hsl(232 42% 46% / 0.06);
+}
+
+.pronunciation-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 0;
+}
+
+.pronunciation-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid hsl(var(--border) / 0.5);
+}
+
+.pronunciation-step-number {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: hsl(233 72% 61% / 0.1);
+  color: hsl(233 72% 58%);
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.pronunciation-listen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  background: hsl(233 72% 61% / 0.08);
+  color: hsl(233 72% 58%);
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid hsl(233 72% 61% / 0.15);
+  transition: all 0.2s ease;
+}
+
+.pronunciation-listen-btn:hover {
+  background: hsl(233 72% 61% / 0.15);
+  transform: translateY(-1px);
+}
+
+.pronunciation-speak-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, hsl(233 72% 58%), hsl(258 65% 58%));
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 4px 14px hsl(233 72% 46% / 0.25);
+  transition: all 0.2s ease;
+}
+
+.pronunciation-speak-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px hsl(233 72% 46% / 0.35);
+}
+
+.pronunciation-speak-btn-active {
+  background: linear-gradient(135deg, hsl(350 72% 55%), hsl(340 65% 55%));
+  box-shadow:
+    0 4px 14px hsl(350 72% 46% / 0.25),
+    0 0 0 3px hsl(350 72% 55% / 0.2);
+  animation: pulseGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow:
+      0 4px 14px hsl(350 72% 46% / 0.25),
+      0 0 0 3px hsl(350 72% 55% / 0.2);
+  }
+  50% {
+    box-shadow:
+      0 4px 20px hsl(350 72% 46% / 0.35),
+      0 0 0 6px hsl(350 72% 55% / 0.1);
+  }
+}
+
+.pronunciation-listening {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  margin-top: 0.5rem;
+  border-radius: 1rem;
+  background: hsl(233 72% 61% / 0.04);
+  border: 1px dashed hsl(233 72% 61% / 0.2);
+}
+
+.pronunciation-wave {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+}
+
+.pronunciation-wave-bar {
+  width: 4px;
+  border-radius: 9999px;
+  background: hsl(233 72% 58%);
+  animation: waveAnimation 0.8s ease-in-out infinite;
+}
+
+.pronunciation-wave-bar:nth-child(1) { height: 12px; }
+.pronunciation-wave-bar:nth-child(2) { height: 20px; }
+.pronunciation-wave-bar:nth-child(3) { height: 28px; }
+.pronunciation-wave-bar:nth-child(4) { height: 20px; }
+.pronunciation-wave-bar:nth-child(5) { height: 12px; }
+
+@keyframes waveAnimation {
+  0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+.pronunciation-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+  font-size: 0.85rem;
+}
+
+.pronunciation-result-correct {
+  background: hsl(152 68% 95%);
+  color: hsl(152 68% 30%);
+  border: 1px solid hsl(152 68% 50% / 0.3);
+}
+
+.pronunciation-result-incorrect {
+  background: hsl(350 80% 96%);
+  color: hsl(350 60% 35%);
+  border: 1px solid hsl(350 60% 50% / 0.3);
+}
+
+.pronunciation-celebration {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+/* Pronunciation practice open button */
+
+.pronunciation-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(135deg, hsl(268 67% 58%), hsl(233 72% 58%));
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 6px 20px hsl(258 65% 46% / 0.25);
+  transition: all 0.2s ease;
+}
+
+.pronunciation-open-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px hsl(258 65% 46% / 0.35);
+  filter: brightness(1.05);
+}
+
+.pronunciation-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.pronunciation-lock-badge-locked {
+  background: hsl(38 92% 95%);
+  color: hsl(38 70% 40%);
+  border: 1px solid hsl(38 92% 60% / 0.4);
+}
+
+.pronunciation-lock-badge-unlocked {
+  background: hsl(152 68% 95%);
+  color: hsl(152 68% 36%);
+  border: 1px solid hsl(152 68% 50% / 0.4);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
