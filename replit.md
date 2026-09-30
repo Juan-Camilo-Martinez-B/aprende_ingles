@@ -1,45 +1,47 @@
-# [Project name]
+# Aprende Inglés (Inglés desde cero)
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+App amigable para aprender inglés paso a paso: lecciones con audio, vocabulario por categorías y práctica con quiz. Progreso local en `localStorage`.
+
+**Autor:** Nicolás
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/ingles-desde-cero run dev` — frontend de aprendizaje (Vite)
+- `pnpm --filter @workspace/api-server run dev` — API (puerto 5000), si lo usas
+- `pnpm run typecheck` — typecheck en todo el workspace
+- `pnpm run build` — typecheck + build de paquetes
+- `pnpm --filter @workspace/api-spec run codegen` — regenerar hooks OpenAPI / Zod
+- `pnpm --filter @workspace/db run push` — push de schema DB (solo dev)
+- Env opcional API: `DATABASE_URL` — Postgres
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React, Vite, Tailwind, Framer Motion
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Validación: Zod (`zod/v4`), `drizzle-zod`
+- Codegen: Orval (OpenAPI)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
-
-## Architecture decisions
-
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- UI principal: `artifacts/ingles-desde-cero/src/pages/home.tsx`
+- Contenido de lecciones: `artifacts/ingles-desde-cero/src/data/content.ts`
+- Estilos globales: `artifacts/ingles-desde-cero/src/index.css`
+- OpenAPI: `lib/api-spec/openapi.yaml`
+- Schema DB: `lib/db/src/schema/`
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Hero y ruta de 5 lecciones (abecedario, números, vocabulario, to be, práctica)
+- Text-to-speech en tarjetas (Web Speech API)
+- Quiz con puntuación máxima persistida
+- Navegación con scroll spy y barra lateral de progreso (desktop)
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Nicolás prefiere iterar directo en código; mantener la UI clara, moderna y funcional.
 
 ## Pointers
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Ver skill `pnpm-workspace` para estructura del monorepo y paquetes.
