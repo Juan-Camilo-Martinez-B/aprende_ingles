@@ -1,0 +1,36 @@
+Crea una plataforma web interactiva y moderna para aprender inglés básico desde cero. La aplicación debe ser funcional, intuitiva, responsiva y contar con un diseño frontend sumamente atractivo, limpio y amigable para el estudiante (estilo Duolingo o Notion Edu).
+
+### 1. Estructura y Módulos de Contenido:
+
+*   **Módulo 1: El Abecedario (Alphabet)**
+    *   Tarjetas interactivas (flashcards) con cada letra del abecedario en inglés.
+    *   Pronunciación fonética sugerida para cada letra.
+    *   Botón de reproducción de audio usando la API nativa del navegador (Web Speech API / SpeechSynthesis).
+
+*   **Módulo 2: Los Números (Numbers)**
+    *   Sección interactiva para aprender números del 1 al 20, y decenas principales (30, 40, 50, ..., 100).
+    *   Ejemplos visuales y botón de audio para escuchar la pronunciación.
+
+*   **Módulo 3: Vocabulario Básico (Basic Vocabulary)**
+    *   Categorías organizadas por pestañas o tarjetas: Saludos (Greetings), Colores (Colors), Días y Meses (Days & Months) y Objetos comunes (Common Objects).
+    *   Tarjetas con imagen/icono, palabra en inglés, traducción al español y botón de audio.
+
+*   **Módulo 4: El Verbo To Be (Verb To Be)**
+    *   Lección explicativa clara e interactiva (Presente afirmativo, negativo e interrogativo).
+    *   Tabla comparativa de pronombre + forma del verbo (I am, You are, He/She/It is, We/They are).
+    *   Ejemplos prácticos con traducción.
+
+### 2. Evaluaciones e Interactividad (Quiz Zone):
+
+*   Un módulo de práctica/quiz interactivo para poner a prueba los 4 temas.
+*   Tipos de preguntas: Opción múltiple y "completa la oración" (especialmente para el Verbo To Be).
+*   Retroalimentación inmediata (correcto/incorrecto) y contador de puntaje final.
+
+### 3. Frontend y UX/UI:
+
+*   **Diseño:** Interfaz moderna, limpia y colorida con una paleta de colores suave (tonos azule y violeta pastel, fondo claro).
+*   **Componentes:** Uso de sombras suaves, bordes redondeados (rounded corners), animaciones de transición fluidas al hacer hover o cambiar de pestaña.
+*   **Tecnologías sugeridas:** HTML5, CSS3/TailwindCSS y JavaScript vanilla (o React si es más conveniente para la estructura de Replit).
+*   **Navegación:** Barra lateral (sidebar) o barra superior fija para cambiar fácilmente entre los módulos ("Inicio", "Abecedario", "Números", "Vocabulario", "Verbo To Be", "Práctica").
+
+Genera todo el código necesario y asegúrate de que la aplicación sea 100% funcional y ejecutable de inmediato en Replit.

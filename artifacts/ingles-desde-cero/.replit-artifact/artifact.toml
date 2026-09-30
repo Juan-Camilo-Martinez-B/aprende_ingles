@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Inglés desde cero"
+description = "Una plataforma interactiva en español para aprender inglés básico con lecciones de alfabeto, números, vocabulario y verbo to be, audio del navegador y práctica con seguimiento local del progreso."
+version = "1.0.0"
+id = "artifacts/ingles-desde-cero"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 26172
+
+[services.development]
+run = "pnpm --filter @workspace/ingles-desde-cero run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ingles-desde-cero", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/ingles-desde-cero/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26172"
+BASE_PATH = "/"
